@@ -164,6 +164,16 @@ def get_available_lroc_references(instrument: str) -> list[dict[str, str]]:
                         fpath = os.path.join(EXAMPLES_REAL_DIR, f)
                         results.append({"filename": f, "filepath": fpath})
 
+        results = sorted(
+            results,
+            key=lambda r: (
+                1 if "zero_overlap" in r["filename"].lower() else 0,
+                0 if ("m1347345441rc" in r["filename"].lower() or "aligned" in r["filename"].lower()) else 1,
+                -get_internal_overlap_pct(r["filepath"]),
+                r["filename"],
+            ),
+        )
+
     return results
 
 

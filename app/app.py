@@ -359,15 +359,28 @@ def main():
         ref_filenames = [r["filename"] for r in lroc_refs]
         ref_map = {r["filename"]: r["filepath"] for r in lroc_refs}
 
+        default_ref = ref_filenames[0] if ref_filenames else ""
+        for cand in ref_filenames:
+            if "aligned" in cand.lower() or "m1347345441rc" in cand.lower():
+                default_ref = cand
+                break
+
         if (
             st.session_state.get("select_lroc_ref") not in ref_filenames
-            and ref_filenames
+            or "zero_overlap" in st.session_state.get("select_lroc_ref", "")
         ):
-            st.session_state["select_lroc_ref"] = ref_filenames[0]
+            st.session_state["select_lroc_ref"] = default_ref
+
+        default_idx = (
+            ref_filenames.index(st.session_state["select_lroc_ref"])
+            if st.session_state.get("select_lroc_ref") in ref_filenames
+            else 0
+        )
 
         selected_lroc_filename = st.selectbox(
             "LROC Reference",
             options=ref_filenames,
+            index=default_idx,
             label_visibility="collapsed",
             key="select_lroc_ref",
         )
