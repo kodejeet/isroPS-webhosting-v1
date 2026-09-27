@@ -1,0 +1,72 @@
+# Default pipeline configuration
+pipeline:
+  name: "sift_baseline"
+  random_seed: 42
+  device: "cpu"
+
+preprocessing:
+  clahe:
+    enabled: true
+    clip_limit: 3.0
+    tile_grid_size: [8, 8]
+
+feature_extraction:
+  method: "sift"  # Options: sift, rift, lightglue (stub)
+  sift:
+    nfeatures: 5000
+    nOctaveLayers: 4
+    contrastThreshold: 0.015
+    edgeThreshold: 15
+    sigma: 1.6
+  rift:
+    nscale: 4
+    norient: 6
+    npt: 5000
+    minWaveLength: 3
+    mult: 1.6
+    sigmaOnf: 0.75
+    g: 3
+    k: 1
+    patch_size: 96
+    no: 6
+    nbin: 6
+    is_ori: 1
+    ori_peak_ratio: 0.8
+
+matching:
+  method: "descriptor"  # Options: descriptor, rift, lightglue (stub)
+  descriptor:
+    norm_type: "L2"
+    cross_check: false
+    ratio_test_threshold: 0.82  # Lowe's ratio test threshold
+  rift:
+    norm_type: "L2"
+    ratio_test_threshold: 0.90  # More permissive for MIM histograms
+  spatial_selection:
+    enabled: true
+    grid_rows: 8
+    grid_cols: 8
+    top_k: 8
+
+geometry:
+  model_type: "homography"  # Options: homography, affine
+  ransac:
+    reproj_threshold: 3.0  # Max allowable reprojection error in pixels
+    max_iters: 2000
+    confidence: 0.99
+  subpixel_refinement:
+    enabled: false
+    win_size: 5
+    zero_zone: -1
+
+evaluation:
+  grid_rows: 4
+  grid_cols: 4
+
+processing:
+  max_dimension: 4096
+
+output:
+  save_visualizations: true
+  save_metrics_json: true
+  output_dir: "./outputs"

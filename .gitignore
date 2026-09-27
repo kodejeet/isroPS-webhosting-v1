@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Testing, Quality & Coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Notebooks Checkpoints
+.ipynb_checkpoints/
+
+# Data directory contents (keep directory structure via .gitkeep)
+data/raw/*
+!data/raw/.gitkeep
+data/calibrated/*
+!data/calibrated/.gitkeep
+data/reference/*
+!data/reference/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Exclude raw multi-gigabyte PDS binary cubes (datasets/ folder is KEPT tracked)
+*.IMG
+*.img
+*.qube
+
+# Saved artifacts & outputs
+outputs/
+runs/
+*.log
+results/*
+report_*.pdf
+registration_*.csv
+registration_*.xml
+
+# Streamlit Local Secrets
+.streamlit/secrets.toml
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+.directory
+
+# Environment secrets
+.env
