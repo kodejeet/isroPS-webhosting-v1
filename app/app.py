@@ -276,17 +276,15 @@ def main():
     if "radio_instrument" not in st.session_state:
         st.session_state["radio_instrument"] = "TMC-2"
     if "select_ch2_prod" not in st.session_state:
-        st.session_state["select_ch2_prod"] = "ch2_tmc_ncn_20260813T0627378557_d_img_d18"
+        st.session_state["select_ch2_prod"] = "tmc2_20260813_ncn_crop.tif"
     if "select_lroc_ref" not in st.session_state:
-        st.session_state["select_lroc_ref"] = "M1347345441RC.IMG"
+        st.session_state["select_lroc_ref"] = "lroc_m1347345441rc_tmc2_nadir_aligned.tif"
 
     # Handle pending failure preset before widgets render
     if st.session_state.get("set_failure_preset", False):
         st.session_state["set_failure_preset"] = False
         st.session_state["radio_instrument"] = "TMC-2"
-        st.session_state["select_ch2_prod"] = (
-            "ch2_tmc_ncn_20260813T0627378557_d_img_d18"
-        )
+        st.session_state["select_ch2_prod"] = "tmc2_20260813_ncn_crop.tif"
         avail_refs = [r["filename"] for r in get_available_lroc_references("TMC-2")]
         if "M1225104036LC.IMG" in avail_refs:
             st.session_state["select_lroc_ref"] = "M1225104036LC.IMG"
@@ -359,28 +357,15 @@ def main():
         ref_filenames = [r["filename"] for r in lroc_refs]
         ref_map = {r["filename"]: r["filepath"] for r in lroc_refs}
 
-        default_ref = ref_filenames[0] if ref_filenames else ""
-        for cand in ref_filenames:
-            if "aligned" in cand.lower() or "m1347345441rc" in cand.lower():
-                default_ref = cand
-                break
-
         if (
             st.session_state.get("select_lroc_ref") not in ref_filenames
-            or "zero_overlap" in st.session_state.get("select_lroc_ref", "")
+            and ref_filenames
         ):
-            st.session_state["select_lroc_ref"] = default_ref
-
-        default_idx = (
-            ref_filenames.index(st.session_state["select_lroc_ref"])
-            if st.session_state.get("select_lroc_ref") in ref_filenames
-            else 0
-        )
+            st.session_state["select_lroc_ref"] = ref_filenames[0]
 
         selected_lroc_filename = st.selectbox(
             "LROC Reference",
             options=ref_filenames,
-            index=default_idx,
             label_visibility="collapsed",
             key="select_lroc_ref",
         )
