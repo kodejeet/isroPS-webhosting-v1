@@ -1,0 +1,71 @@
+name: Streamlit Keep-Alive & Anti-Sleep
+
+on:
+  schedule:
+    # Runs every 5 minutes (the shortest interval supported by GitHub Actions)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/**'
+
+jobs:
+  ping-and-wake:
+    name: Ping & Keep Active
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed for periodic 45-day commit to prevent GitHub 60-day auto-disable
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fast HTTP Ping
+        run: |
+          echo "Pinging Streamlit app via HTTP..."
+          curl -s -L -m 15 -I "https://chandramap.streamlit.app/" || echo "HTTP ping finished"
+
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium
+
+      - name: Install Playwright
+        run: pip install playwright
+
+      - name: Install Chromium Browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install chromium
+
+      - name: Run Keep-Alive & Auto-Wake Script
+        env:
+          STREAMLIT_APP_URL: "https://chandramap.streamlit.app/"
+        run: python .github/scripts/keep_alive.py
+
+      - name: Prevent GitHub 60-day scheduled workflow auto-disable
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          LAST_COMMIT_DATE=$(git log -1 --format=%ct)
+          CURRENT_DATE=$(date +%s)
+          DIFF_DAYS=$(( (CURRENT_DATE - LAST_COMMIT_DATE) / 86400 ))
+
+          echo "Days since last commit: $DIFF_DAYS"
+
+          # If it has been 45+ days without commits, push an empty commit to prevent GitHub from disabling scheduled cron
+          if [ "$DIFF_DAYS" -ge 45 ]; then
+            git commit --allow-empty -m "chore: keep-alive empty commit to prevent 60-day disable [skip ci]"
+            git push origin main || echo "Push skipped or permissions restricted."
+          else
+            echo "Recent commit exists ($DIFF_DAYS days ago). No commit needed."
+          fi
