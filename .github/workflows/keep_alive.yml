@@ -11,19 +11,24 @@ on:
     paths:
       - '.github/**'
 
+env:
+  # Keep this in sync with the cached browser build. Bump both together when upgrading.
+  PLAYWRIGHT_VERSION: '1.65.0'
+
 jobs:
   ping-and-wake:
     name: Ping & Keep Active
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write # Needed for periodic 45-day commit to prevent GitHub 60-day auto-disable
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -32,18 +37,21 @@ jobs:
           echo "Pinging Streamlit app via HTTP..."
           curl -s -L -m 15 -I "https://chandramap.streamlit.app/" || echo "HTTP ping finished"
 
+      - name: Install Playwright
+        run: pip install "playwright==${PLAYWRIGHT_VERSION}"
+
       - name: Cache Playwright Chromium
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium
+          # Include the pinned Playwright version so a browser upgrade never reuses a
+          # stale cache from an older build (which previously broke the workflow).
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
-      - name: Install Playwright
-        run: pip install playwright
-
+      # Always run this, even on a cache hit: it is a no-op when the browser is already
+      # present and repairs the cache if the expected revision is missing.
       - name: Install Chromium Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: playwright install chromium
 
       - name: Run Keep-Alive & Auto-Wake Script
